@@ -1,46 +1,51 @@
-# Getting Started with Create React App
+# Toys and Tools
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A web app for running *Toys and Tools*, an interactive storytelling RPG for children. The story is
+told out loud; the app handles the setup and dice rolls.
 
-## Available Scripts
+## Playing
 
-In the project directory, you can run:
+1. **Setting** – choose the number of players and generate the opening paragraph of the story.
+   If the story needs a word (e.g. which talking animal), the players are asked first.
+2. **Character creation** – enter each child's name. Their toy, tool and special ability are picked
+   at random (no two characters share an item) and their mood is rolled with two dice (2–12).
+   - Mood above 7 is a *tools* mood, below 7 a *toys* mood, and 7 is *neutral*.
+3. **Gameplay** – the adventure runs through the chapters. Each character can roll **Toys** or
+   **Tools** a limited number of times per chapter (resets when the chapter changes).
+   - A **toys** roll passes if two dice total the character's mood **or more**.
+   - A **tools** roll passes if two dice total the character's mood **or less**.
+   - The result shows how far the roll passed or failed by, so the story can make it a big or
+     small success or failure.
+   - Each character can use their **special ability** a limited number of times in the whole
+     game (2 by default). Using it makes a roll of the ability's type (Toys or Tools), which doesn't
+     count towards that chapter's rolls.
 
-### `npm start`
+Press **Enter** to move on to the next step or chapter (or to submit a name or answer while typing).
+You can step back one chapter, and **Reset game** (with confirmation) starts over at any time.
+The game in progress is saved in the browser, and cleared when the adventure ends or is reset.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Changing the game content
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+All game content lives in JSON files in [`src/config`](src/config); no code changes are needed to
+add or change options, and lists can be any length.
 
-### `npm test`
+| File | Contents |
+| --- | --- |
+| `setting.json` | Story blocks in order. Each has a `leadIn` and a list of `options`. An option can be a string, or `{ "text": "a talking {input}", "inputLabel": "Which animal?" }` to ask the players for a word. `{count}` and `{children}` are replaced with the number of players. |
+| `characters.json` | `toys`, `tools`, and `abilities` (each with a `name` and a `rollType` of `"toys"` or `"tools"`, showing which roll decides it). |
+| `chapters.json` | Chapter names, in order. |
+| `rules.json` | `minPlayers`, `maxPlayers`, `defaultPlayers`, `rollsPerChapter`, `abilityUsesPerGame` (special ability uses per character for the whole game; 2 if left out), `numberWords` used in the story, and the `childNoun`. |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The maximum number of players is also limited by the shortest of the toys, tools and abilities
+lists, so every character can get unique items. The config is checked when the app starts and in
+the tests (`src/game/config.test.ts`), which explain what's wrong if a file is invalid.
 
-### `npm run build`
+## Development
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- `npm install` – install dependencies (run this first)
+- `npm start` – run the app at http://localhost:3000
+- `npm test` – run the tests (`CI=true npm test` to run once)
+- `npm run build` – build for production
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Game rules are plain TypeScript in [`src/game`](src/game); the UI is in
+[`src/components`](src/components).

@@ -1,0 +1,52 @@
+{
+  "blocks": [
+    {
+      "id": "time",
+      "leadIn": "It was a",
+      "options": [
+        "hot summer's day",
+        "cold and frosty morning",
+        "wet Wednesday afternoon",
+        "foggy evening",
+        "dark and stormy night",
+        "bright, moonlit night"
+      ]
+    },
+    {
+      "id": "activity",
+      "leadIn": "and {count} little {children}",
+      "options": [
+        "took a walk in the woods",
+        "had a ride on a train",
+        "found a secret tunnel",
+        "went to the beach",
+        "searched for treasure",
+        "set out to climb a mountain"
+      ]
+    },
+    {
+      "id": "meeting",
+      "leadIn": "where they met",
+      "options": [
+        "a wise old woman",
+        "a cheeky goblin",
+        "a brave knight",
+        "a tiny person",
+        { "text": "a talking {input}", "inputLabel": "Choose an animal?" },
+        "a mean troll"
+      ]
+    },
+    {
+      "id": "goal",
+      "leadIn": "who wants to",
+      "options": [
+        "steal their toys",
+        "eat all the cake",
+        "cast a spell to make all the children sad",
+        "find its way home",
+        "rescue its friend",
+        "find a treasure"
+      ]
+    }
+  ]
+}
