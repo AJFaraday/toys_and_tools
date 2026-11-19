@@ -1,10 +1,10 @@
 import { Dispatch, FormEvent, useState } from 'react';
 import { GameConfig, effectiveMaxPlayers } from '../game/config';
-import { Rng } from '../game/dice';
+import { Rng, pickRandom } from '../game/dice';
 import { SettingLine, generateSetting, isSettingComplete, needsInput } from '../game/setting';
 import { GameAction, GameState } from '../game/state';
 import { Story } from './Story';
-import { reveal, useMotion, useMountValue } from './ui/motion';
+import { STORY_STEP_MS, reveal, useMotion, useMountValue } from './ui/motion';
 
 interface Props {
   state: GameState;
@@ -12,6 +12,9 @@ interface Props {
   rng: Rng;
   config: GameConfig;
 }
+
+// Boys, girls and babies, with yellow or light skin. Only for show, so not from the game's rng.
+const CHILD_ICONS = ['👦', '👧', '👶', '👦🏻', '👧🏻', '👶🏻'];
 
 interface QuestionsProps {
   lines: SettingLine[];
@@ -59,6 +62,10 @@ export const SettingPhase = ({ state, dispatch, rng, config }: Props) => {
   // A story already finished when this screen appeared (e.g. after a reload) is shown without fading in.
   const storyIsNew = useMountValue(!isSettingComplete(state.setting));
   const { minPlayers } = config.rules;
+  // Picked once, so changing the number of players adds or removes children rather than reshuffling them.
+  const [childIcons] = useState(() =>
+    Array.from({ length: effectiveMaxPlayers(config) }, () => pickRandom(CHILD_ICONS, Math.random)),
+  );
   const playerOptions = Array.from(
     { length: effectiveMaxPlayers(config) - minPlayers + 1 },
     (_, i) => minPlayers + i,
@@ -70,7 +77,7 @@ export const SettingPhase = ({ state, dispatch, rng, config }: Props) => {
     return (
       <>
         <Story setting={setting} playerCount={state.playerCount} rules={config.rules} animate={animate} />
-        <p {...reveal(animate, setting.length + 1, 'actions')}>
+        <p {...reveal(animate, setting.length, 'actions', STORY_STEP_MS)}>
           <button type="button" className="btn btn--primary btn--big" onClick={() => dispatch({ type: 'START_CHARACTERS' })}>
             Continue to character creation <span aria-hidden="true">▶</span>
           </button>
@@ -101,9 +108,9 @@ export const SettingPhase = ({ state, dispatch, rng, config }: Props) => {
               </select>
             </label>
             <span className="players__icons" aria-hidden="true">
-              {Array.from({ length: state.playerCount }, (_, i) => (
+              {childIcons.slice(0, state.playerCount).map((icon, i) => (
                 <span key={i} className="players__icon">
-                  🧒
+                  {icon}
                 </span>
               ))}
             </span>

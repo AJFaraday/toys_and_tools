@@ -546,6 +546,7 @@ h2 {
 
 .roll--toys {
   background: var(--toys-soft);
+  flex-direction: row-reverse;
 }
 
 .roll--tools {
@@ -554,6 +555,11 @@ h2 {
 
 .roll--animating {
   cursor: pointer;
+}
+
+.roll--toys .roll__dice,
+.roll--toys .roll__status {
+  flex-direction: row-reverse;
 }
 
 .roll__dice {
@@ -622,14 +628,6 @@ h2 {
 
 .roll__result--fail .roll__result-margin {
   color: var(--fail);
-}
-
-.roll__text {
-  flex-basis: 100%;
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--ink-soft);
-  line-height: 1.3;
 }
 
 .card__counters {
@@ -821,6 +819,7 @@ h2 {
 
 .story__part.reveal {
   animation-name: reveal-text;
+  animation-duration: 1400ms;
 }
 
 .pop {

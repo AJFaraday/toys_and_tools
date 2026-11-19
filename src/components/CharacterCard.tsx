@@ -20,7 +20,8 @@ interface Props {
   onUseAbility: () => void;
 }
 
-const ROLL_TYPES: RollType[] = ['toys', 'tools'];
+// Tools on the left and toys on the right, matching their sides of the mood meter.
+const ROLL_TYPES: RollType[] = ['tools', 'toys'];
 export const rollTypeIcon: Record<RollType, string> = { toys: '🧸', tools: '🛠️' };
 
 // The dice tumble and slow down, then a marker hops from the mood to the total, slowing as it goes.
@@ -100,11 +101,6 @@ export const CharacterCard = ({
             </>
           )}
         </p>
-        {lastRoll && done && (
-          <p className="roll__text" aria-hidden="true">
-            {rollSummary(lastRoll)}
-          </p>
-        )}
       </div>
 
       <div className="card__counters">

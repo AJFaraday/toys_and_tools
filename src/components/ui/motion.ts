@@ -37,6 +37,8 @@ export const useTimeline = (delays: readonly number[], key: unknown, active: boo
 };
 
 export const REVEAL_STEP_MS = 450;
+// The story is read aloud, so each phrase gets time to land.
+export const STORY_STEP_MS = 2000;
 
 // Props for something that fades in as the `index`th item of a group.
 export const reveal = (
