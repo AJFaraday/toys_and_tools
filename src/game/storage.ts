@@ -1,6 +1,8 @@
 import { GameState, PHASES } from './state';
 
 export const STORAGE_KEY = 'toys-and-tools:v1';
+// Kept separately from the game so names survive resets and finished games.
+export const NAMES_STORAGE_KEY = 'toys-and-tools:names:v1';
 
 const getStorage = (): Storage | null => {
   try {
@@ -53,5 +55,26 @@ export const clearGame = (storage: Storage | null = getStorage()): void => {
     storage?.removeItem(STORAGE_KEY);
   } catch {
     // Ignore unavailable storage.
+  }
+};
+
+// Names are stored by player position, so each player gets their name back next game.
+export const loadNames = (storage: Storage | null = getStorage()): string[] => {
+  try {
+    const parsed: unknown = JSON.parse(storage?.getItem(NAMES_STORAGE_KEY) ?? '[]');
+    return Array.isArray(parsed) ? parsed.map((name) => (typeof name === 'string' ? name : '')) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveName = (index: number, name: string, storage: Storage | null = getStorage()): void => {
+  const names = loadNames(storage);
+  while (names.length < index) names.push('');
+  names[index] = name;
+  try {
+    storage?.setItem(NAMES_STORAGE_KEY, JSON.stringify(names));
+  } catch {
+    // Ignore unavailable storage; the name just won't be remembered.
   }
 };

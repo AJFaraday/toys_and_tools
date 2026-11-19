@@ -1,7 +1,7 @@
 # Roadmap
 
 - [x] Game mechanics
-- [ ] Store character names between games (local)
+- [x] Store character names between games (local)
 - [ ] Deploy to github pages
 - [ ] Design in-game UI
 - [ ] Design character creation UI

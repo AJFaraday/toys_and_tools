@@ -23,6 +23,8 @@ told out loud; the app handles the setup and dice rolls.
 Press **Enter** to move on to the next step or chapter (or to submit a name or answer while typing).
 You can step back one chapter, and **Reset game** (with confirmation) starts over at any time.
 The game in progress is saved in the browser, and cleared when the adventure ends or is reset.
+Character names are remembered between games: each name field starts with the name last used for
+that player, selected so you can press Enter to keep it or type to replace it.
 
 ## Changing the game content
 

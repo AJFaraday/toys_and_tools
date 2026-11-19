@@ -148,6 +148,44 @@ describe('character creation', () => {
     expect(screen.getByLabelText('Name of character 2 of 2')).toHaveFocus();
   });
 
+  it('fills in names from earlier games, which can be kept or changed', () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<App rng={rng} />);
+    startAdventure('Alice', 'Bob');
+    click('Reset game');
+
+    choosePlayers(3);
+    click('Generate story');
+    fillStoryInputs();
+    click('Continue to character creation');
+
+    const first = screen.getByLabelText<HTMLInputElement>('Name of character 1 of 3');
+    expect(first).toHaveValue('Alice');
+    expect(first).toHaveFocus();
+    expect([first.selectionStart, first.selectionEnd]).toEqual([0, 'Alice'.length]);
+    userEvent.keyboard('{enter}');
+    expect(screen.getByRole('article', { name: 'Alice' })).toBeInTheDocument();
+
+    expect(screen.getByLabelText('Name of character 2 of 3')).toHaveValue('Bob');
+    createCharacters('Bella');
+    expect(screen.getByLabelText('Name of character 3 of 3')).toHaveValue('');
+    createCharacters('Cara');
+    click('Start adventure');
+    for (let i = 1; i < gameConfig.chapters.length; i += 1) click('Next chapter');
+    click('Finish adventure');
+    click('New game');
+
+    choosePlayers(3);
+    click('Generate story');
+    fillStoryInputs();
+    click('Continue to character creation');
+    expect(screen.getByLabelText('Name of character 1 of 3')).toHaveValue('Alice');
+    createCharacters('Alice');
+    expect(screen.getByLabelText('Name of character 2 of 3')).toHaveValue('Bella');
+    createCharacters('Bella');
+    expect(screen.getByLabelText('Name of character 3 of 3')).toHaveValue('Cara');
+  });
+
   it('shows ability roll type and mood type', () => {
     render(<App rng={rng} />);
     choosePlayers(1);

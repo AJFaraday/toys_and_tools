@@ -1,8 +1,9 @@
-import { Dispatch, FormEvent, useState } from 'react';
+import { Dispatch, FormEvent, useEffect, useRef, useState } from 'react';
 import { createCharacter } from '../game/characters';
 import { GameConfig } from '../game/config';
 import { Rng } from '../game/dice';
 import { GameAction, GameState } from '../game/state';
+import { loadNames, saveName } from '../game/storage';
 import { CharacterDetails } from './CharacterDetails';
 
 interface Props {
@@ -12,16 +13,47 @@ interface Props {
   config: GameConfig;
 }
 
-export const CharacterPhase = ({ state, dispatch, rng, config }: Props) => {
-  const [name, setName] = useState('');
-  const allCreated = state.characters.length >= state.playerCount;
+interface NameFormProps {
+  index: number;
+  playerCount: number;
+  onSubmit: (name: string) => void;
+}
+
+const NameForm = ({ index, playerCount, onSubmit }: NameFormProps) => {
+  const [name, setName] = useState(() => loadNames()[index] ?? '');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Selecting a remembered name means typing replaces it, and Enter keeps it.
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (name.trim() === '' || allCreated) return;
-    dispatch({ type: 'ADD_CHARACTER', character: createCharacter(name, state.characters, rng, config) });
-    setName('');
+    if (name.trim() === '') return;
+    saveName(index, name.trim());
+    onSubmit(name);
   };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <label>
+        Name of character {index + 1} of {playerCount}{' '}
+        <input ref={inputRef} type="text" value={name} onChange={(e) => setName(e.target.value)} />
+      </label>{' '}
+      <button type="submit" disabled={name.trim() === ''}>
+        Create character
+      </button>
+    </form>
+  );
+};
+
+export const CharacterPhase = ({ state, dispatch, rng, config }: Props) => {
+  const allCreated = state.characters.length >= state.playerCount;
+
+  const addCharacter = (name: string) =>
+    dispatch({ type: 'ADD_CHARACTER', character: createCharacter(name, state.characters, rng, config) });
 
   return (
     <section>
@@ -39,15 +71,12 @@ export const CharacterPhase = ({ state, dispatch, rng, config }: Props) => {
           Start adventure
         </button>
       ) : (
-        <form key={state.characters.length} onSubmit={handleSubmit}>
-          <label>
-            Name of character {state.characters.length + 1} of {state.playerCount}{' '}
-            <input type="text" autoFocus value={name} onChange={(e) => setName(e.target.value)} />
-          </label>{' '}
-          <button type="submit" disabled={name.trim() === ''}>
-            Create character
-          </button>
-        </form>
+        <NameForm
+          key={state.characters.length}
+          index={state.characters.length}
+          playerCount={state.playerCount}
+          onSubmit={addCharacter}
+        />
       )}
     </section>
   );
