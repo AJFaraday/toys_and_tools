@@ -2,7 +2,7 @@
 
 - [x] Game mechanics
 - [x] Store character names between games (local)
-- [ ] Deploy to github pages
+- [x] Deploy to github pages
 - [ ] Design in-game UI
 - [ ] Design character creation UI
 - [ ] Style the page

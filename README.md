@@ -3,6 +3,8 @@
 A web app for running *Toys and Tools*, an interactive storytelling RPG for children. The story is
 told out loud; the app handles the setup and dice rolls.
 
+Play it at https://ajfaraday.github.io/toys_and_tools/
+
 ## Playing
 
 1. **Setting** – choose the number of players and generate the opening paragraph of the story.
@@ -51,3 +53,10 @@ the tests (`src/game/config.test.ts`), which explain what's wrong if a file is i
 
 Game rules are plain TypeScript in [`src/game`](src/game); the UI is in
 [`src/components`](src/components).
+
+## Deployment
+
+Every push to `main` runs the tests, builds the app and deploys it to GitHub Pages using
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). It can also be run by hand from the
+repository's Actions tab. The `homepage` in `package.json` sets the path the build expects to be
+served from.
