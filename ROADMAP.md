@@ -12,5 +12,9 @@
   - [x] Character reveal
 - [x] More toys, tools, abilities, settings and story dice
 - [ ] Playtest with Children
-- [ x Mobile UX
+- [x] Mobile UX
+
+## Later
+
 - [ ] Game selection (e.g. multiple config directories)
+- [ ] Multiple story dice capability
