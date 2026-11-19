@@ -3,7 +3,7 @@ import { Character } from './characters';
 import { RollResult } from './rules';
 import { Rng } from './dice';
 import { SettingLine, generateSetting, isSettingComplete } from './setting';
-import { chapterHasAction } from './storyDice';
+import { chapterHasAction } from './chapters';
 
 export type Phase = 'setting' | 'characters' | 'gameplay' | 'complete';
 
