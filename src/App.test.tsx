@@ -379,3 +379,54 @@ describe('keyboard', () => {
     expect(card('Alice').getByRole('status')).toBeEmptyDOMElement();
   });
 });
+
+describe('story dice', () => {
+  const twist = gameConfig.chapters.findIndex((c) => c.actions.includes('StoryDice'));
+  const toTwist = () => {
+    for (let i = 0; i < twist; i += 1) click('Next chapter');
+    expect(screen.getByRole('heading', { name: new RegExp(`Chapter ${twist + 1} of`) })).toBeInTheDocument();
+  };
+  const storyDice = () => screen.queryByText(/^Story dice:/);
+
+  it('rolls as soon as the twist chapter starts, and only there', () => {
+    render(<App rng={rng} />);
+    startAdventure('Alice');
+    expect(storyDice()).not.toBeInTheDocument();
+
+    rngValue = 0.9999;
+    toTwist();
+    expect(storyDice()).toHaveTextContent(`Story dice: ${gameConfig.storyDice[gameConfig.storyDice.length - 1]}`);
+    expect(screen.queryByRole('button', { name: /story dice/i })).not.toBeInTheDocument();
+
+    click('Next chapter');
+    expect(storyDice()).not.toBeInTheDocument();
+  });
+
+  it('keeps the same face when stepping back and forward, and after a reload', () => {
+    const { unmount } = render(<App rng={rng} />);
+    startAdventure('Alice');
+    toTwist();
+    const first = `Story dice: ${gameConfig.storyDice[0]}`;
+    expect(storyDice()).toHaveTextContent(first);
+
+    rngValue = 0.9999;
+    click('Previous chapter');
+    click('Next chapter');
+    expect(storyDice()).toHaveTextContent(first);
+    click('Next chapter');
+    click('Previous chapter');
+    expect(storyDice()).toHaveTextContent(first);
+
+    unmount();
+    render(<App rng={rng} />);
+    expect(storyDice()).toHaveTextContent(first);
+  });
+
+  it('moves on with Enter as usual', () => {
+    render(<App rng={rng} />);
+    startAdventure('Alice');
+    toTwist();
+    userEvent.keyboard('{enter}');
+    expect(screen.getByRole('heading', { name: new RegExp(`Chapter ${twist + 2} of`) })).toBeInTheDocument();
+  });
+});

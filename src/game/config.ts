@@ -2,6 +2,7 @@ import settingJson from '../config/setting.json';
 import charactersJson from '../config/characters.json';
 import chaptersJson from '../config/chapters.json';
 import rulesJson from '../config/rules.json';
+import storyDiceJson from '../config/storyDice.json';
 
 export type RollType = 'toys' | 'tools';
 
@@ -31,13 +32,24 @@ export interface Rules {
   childNoun: { singular: string; plural: string };
 }
 
+// Components that can be attached to a chapter in chapters.json.
+export const CHAPTER_ACTIONS = ['StoryDice'] as const;
+
+export type ChapterAction = (typeof CHAPTER_ACTIONS)[number];
+
+export interface Chapter {
+  label: string;
+  actions: ChapterAction[];
+}
+
 export interface GameConfig {
   settingBlocks: SettingBlock[];
   toys: string[];
   tools: string[];
   abilities: Ability[];
-  chapters: string[];
+  chapters: Chapter[];
   rules: Rules;
+  storyDice: string[];
 }
 
 export const INPUT_PLACEHOLDER = '{input}';
@@ -49,6 +61,7 @@ export interface RawConfig {
   characters: unknown;
   chapters: unknown;
   rules: unknown;
+  storyDice: unknown;
 }
 
 class ConfigError extends Error {
@@ -194,20 +207,59 @@ const parseRules = (raw: unknown): Rules => {
   };
 };
 
+const isChapterAction = (value: unknown): value is ChapterAction =>
+  CHAPTER_ACTIONS.includes(value as ChapterAction);
+
+const parseChapter = (value: unknown, path: string): Chapter => {
+  if (typeof value === 'string') return { label: requireString(value, path), actions: [] };
+  if (!isRecord(value)) throw new ConfigError(`${path} must be a string or { label, actions }`);
+  const rawActions = value.actions === undefined ? [] : value.actions;
+  if (!Array.isArray(rawActions)) throw new ConfigError(`${path}.actions must be a list`);
+  const actions = rawActions.map((action, i) => {
+    if (!isChapterAction(action)) {
+      throw new ConfigError(`${path}.actions[${i}] must be one of: ${CHAPTER_ACTIONS.join(', ')}`);
+    }
+    return action;
+  });
+  if (new Set(actions).size !== actions.length) {
+    throw new ConfigError(`${path}.actions must not contain duplicates`);
+  }
+  return { label: requireString(value.label, `${path}.label`), actions };
+};
+
+const parseChapters = (raw: unknown): Chapter[] => {
+  if (!isRecord(raw)) throw new ConfigError('chapters must be an object');
+  const chapters = requireList(raw.chapters, 'chapters.chapters').map((chapter, i) =>
+    parseChapter(chapter, `chapters.chapters[${i}]`),
+  );
+  if (new Set(chapters.map((c) => c.label)).size !== chapters.length) {
+    throw new ConfigError('chapters.chapters must not contain duplicate labels');
+  }
+  return chapters;
+};
+
+const parseStoryDice = (raw: unknown, required: boolean): string[] => {
+  if (raw === undefined && !required) return [];
+  if (!isRecord(raw)) throw new ConfigError('storyDice must be an object');
+  return requireUniqueStrings(raw.faces, 'storyDice.faces');
+};
+
 export const effectiveMaxPlayers = (config: GameConfig): number =>
   Math.min(config.rules.maxPlayers, config.toys.length, config.tools.length, config.abilities.length);
 
 export const parseConfig = (raw: RawConfig): GameConfig => {
   if (!isRecord(raw.characters)) throw new ConfigError('characters must be an object');
-  if (!isRecord(raw.chapters)) throw new ConfigError('chapters must be an object');
+  const chapters = parseChapters(raw.chapters);
+  const usesStoryDice = chapters.some((c) => c.actions.includes('StoryDice'));
 
   const config: GameConfig = {
     settingBlocks: parseSettingBlocks(raw.setting),
     toys: requireUniqueStrings(raw.characters.toys, 'characters.toys'),
     tools: requireUniqueStrings(raw.characters.tools, 'characters.tools'),
     abilities: parseAbilities(raw.characters.abilities),
-    chapters: requireUniqueStrings(raw.chapters.chapters, 'chapters.chapters'),
+    chapters,
     rules: parseRules(raw.rules),
+    storyDice: parseStoryDice(raw.storyDice, usesStoryDice),
   };
 
   if (effectiveMaxPlayers(config) < config.rules.defaultPlayers) {
@@ -223,4 +275,5 @@ export const gameConfig: GameConfig = parseConfig({
   characters: charactersJson,
   chapters: chaptersJson,
   rules: rulesJson,
+  storyDice: storyDiceJson,
 });

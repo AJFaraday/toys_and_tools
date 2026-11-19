@@ -161,7 +161,7 @@ describe('gameplay phase', () => {
   it('uses chapter and roll limits from config', () => {
     const config = {
       ...gameConfig,
-      chapters: ['Start', 'End'],
+      chapters: [{ label: 'Start', actions: [] }, { label: 'End', actions: [] }],
       rules: { ...gameConfig.rules, rollsPerChapter: 1 },
     };
     const reducer = createGameReducer(config);
@@ -260,5 +260,36 @@ describe('special abilities', () => {
     const reducer = createGameReducer(config);
     const state = play([...toGameplay(2), useAbility], reducer, createInitialState(config));
     expect(abilityUsesRemaining(state, 'character-1', config)).toBe(4);
+  });
+});
+
+describe('story dice', () => {
+  const twist = gameConfig.chapters.findIndex((c) => c.actions.includes('StoryDice'));
+  const toTwist: GameAction[] = [
+    ...toGameplay(1),
+    ...Array.from({ length: twist }, (): GameAction => ({ type: 'NEXT_CHAPTER' })),
+  ];
+  const [dragon, unicorn] = gameConfig.storyDice;
+  const rollDice = (face: string): GameAction => ({ type: 'ROLL_STORY_DICE', face });
+
+  it('records one face for a story dice chapter, with no re-roll', () => {
+    const state = play([...toTwist, rollDice(dragon), rollDice(unicorn)]);
+    expect(state.storyDice).toEqual({ [twist]: dragon });
+  });
+
+  it('keeps the face when stepping back and forward', () => {
+    const state = play([...toTwist, rollDice(dragon), { type: 'PREV_CHAPTER' }, { type: 'NEXT_CHAPTER' }, rollDice(unicorn)]);
+    expect(state.chapterIndex).toBe(twist);
+    expect(state.storyDice).toEqual({ [twist]: dragon });
+  });
+
+  it('ignores rolls outside a story dice chapter, or with an unknown face', () => {
+    expect(play([...toGameplay(1), rollDice(dragon)]).storyDice).toEqual({});
+    expect(play([rollDice(dragon)]).storyDice).toEqual({});
+    expect(play([...toTwist, rollDice('🍕')]).storyDice).toEqual({});
+  });
+
+  it('is cleared by a reset', () => {
+    expect(play([...toTwist, rollDice(dragon), { type: 'RESET' }]).storyDice).toEqual({});
   });
 });

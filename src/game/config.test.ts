@@ -3,10 +3,17 @@ import settingJson from '../config/setting.json';
 import charactersJson from '../config/characters.json';
 import chaptersJson from '../config/chapters.json';
 import rulesJson from '../config/rules.json';
+import storyDiceJson from '../config/storyDice.json';
 
 const rawConfig = (): RawConfig =>
   JSON.parse(
-    JSON.stringify({ setting: settingJson, characters: charactersJson, chapters: chaptersJson, rules: rulesJson }),
+    JSON.stringify({
+      setting: settingJson,
+      characters: charactersJson,
+      chapters: chaptersJson,
+      rules: rulesJson,
+      storyDice: storyDiceJson,
+    }),
   );
 
 describe('game config files', () => {
@@ -56,6 +63,38 @@ describe('parseConfig', () => {
     expect(parseConfig(withChange((raw) => (raw.rules.abilityUsesPerGame = 4))).rules.abilityUsesPerGame).toBe(4);
   });
 
+  it('reads chapters as plain labels or labels with actions', () => {
+    expect(gameConfig.chapters.map((c) => c.label)).toContain('TWIST!');
+    expect(gameConfig.chapters.find((c) => c.label === 'TWIST!')?.actions).toEqual(['StoryDice']);
+    expect(gameConfig.chapters[0]).toEqual({ label: 'Set the scene', actions: [] });
+
+    const config = parseConfig(
+      withChange((raw) => (raw.chapters.chapters = ['Start', { label: 'Middle' }, { label: 'End', actions: [] }])),
+    );
+    expect(config.chapters).toEqual([
+      { label: 'Start', actions: [] },
+      { label: 'Middle', actions: [] },
+      { label: 'End', actions: [] },
+    ]);
+  });
+
+  it('only needs story dice faces when a chapter uses them', () => {
+    const config = parseConfig(
+      withChange((raw) => {
+        raw.chapters.chapters = ['Start', 'End'];
+        delete raw.storyDice;
+      }),
+    );
+    expect(config.storyDice).toEqual([]);
+    expect(gameConfig.storyDice.length).toBeGreaterThan(0);
+  });
+
+  it('explains which chapter actions are allowed', () => {
+    expect(() => parseConfig(withChange((raw) => (raw.chapters.chapters[0] = { label: 'x', actions: ['Dance'] })))).toThrow(
+      'Invalid game config: chapters.chapters[0].actions[0] must be one of: StoryDice',
+    );
+  });
+
   it('limits players to the smallest list of items', () => {
     const config: GameConfig = parseConfig(
       withChange((raw) => {
@@ -70,6 +109,14 @@ describe('parseConfig', () => {
     ['duplicate tools', (raw) => (raw.characters.tools = ['Map', 'Map', 'Book'])],
     ['an unknown ability roll type', (raw) => (raw.characters.abilities[0].rollType = 'magic')],
     ['no chapters', (raw) => (raw.chapters.chapters = [])],
+    ['duplicate chapter labels', (raw) => (raw.chapters.chapters = ['Start', { label: 'Start' }])],
+    ['a chapter without a label', (raw) => (raw.chapters.chapters[0] = { actions: [] })],
+    ['chapter actions that are not a list', (raw) => (raw.chapters.chapters[0] = { label: 'x', actions: 'StoryDice' })],
+    ['duplicate chapter actions', (raw) => (raw.chapters.chapters[0] = { label: 'x', actions: ['StoryDice', 'StoryDice'] })],
+    ['story dice with no faces', (raw) => (raw.storyDice.faces = [])],
+    ['missing story dice when a chapter uses them', (raw) => delete raw.storyDice],
+    ['duplicate story dice faces', (raw) => (raw.storyDice.faces = ['🐉', '🐉'])],
+    ['an empty story dice face', (raw) => (raw.storyDice.faces = ['🐉', ' '])],
     ['a block with no options', (raw) => (raw.setting.blocks[0].options = [])],
     ['duplicate block ids', (raw) => (raw.setting.blocks[1].id = raw.setting.blocks[0].id)],
     ['an input option without a label', (raw) => raw.setting.blocks[0].options.push('a {input}')],

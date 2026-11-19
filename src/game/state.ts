@@ -3,6 +3,7 @@ import { Character } from './characters';
 import { RollResult } from './rules';
 import { Rng } from './dice';
 import { SettingLine, generateSetting, isSettingComplete } from './setting';
+import { chapterHasAction } from './storyDice';
 
 export type Phase = 'setting' | 'characters' | 'gameplay' | 'complete';
 
@@ -17,6 +18,8 @@ export interface GameState {
   rollsUsed: Record<string, number>;
   lastRoll: Record<string, RollResult>;
   abilityUses: Record<string, number>;
+  // Story dice faces by chapter index; rolled once per game, so they stay when changing chapter.
+  storyDice: Record<number, string>;
 }
 
 export type GameAction =
@@ -28,6 +31,7 @@ export type GameAction =
   | { type: 'START_GAMEPLAY' }
   | { type: 'ROLL'; characterId: string; result: RollResult }
   | { type: 'USE_ABILITY'; characterId: string; result: RollResult }
+  | { type: 'ROLL_STORY_DICE'; face: string }
   | { type: 'NEXT_CHAPTER' }
   | { type: 'PREV_CHAPTER' }
   | { type: 'FINISH' }
@@ -42,6 +46,7 @@ export const createInitialState = (config: GameConfig = gameConfig): GameState =
   rollsUsed: {},
   lastRoll: {},
   abilityUses: {},
+  storyDice: {},
 });
 
 export const rollsRemaining = (state: GameState, characterId: string, config: GameConfig = gameConfig): number =>
@@ -90,7 +95,7 @@ export const createGameReducer =
         return { ...state, characters: [...state.characters, action.character] };
       case 'START_GAMEPLAY':
         if (state.phase !== 'characters' || state.characters.length !== state.playerCount) return state;
-        return { ...state, phase: 'gameplay', chapterIndex: 0, rollsUsed: {}, lastRoll: {}, abilityUses: {} };
+        return { ...state, phase: 'gameplay', chapterIndex: 0, rollsUsed: {}, lastRoll: {}, abilityUses: {}, storyDice: {} };
       case 'ROLL': {
         const { characterId, result } = action;
         if (state.phase !== 'gameplay') return state;
@@ -111,6 +116,12 @@ export const createGameReducer =
           lastRoll: { ...state.lastRoll, [characterId]: { ...result, ability: character.ability.name } },
           abilityUses: { ...state.abilityUses, [characterId]: (state.abilityUses[characterId] ?? 0) + 1 },
         };
+      }
+      case 'ROLL_STORY_DICE': {
+        const { chapterIndex } = state;
+        if (state.phase !== 'gameplay' || !chapterHasAction(chapterIndex, 'StoryDice', config)) return state;
+        if (state.storyDice[chapterIndex] !== undefined || !config.storyDice.includes(action.face)) return state;
+        return { ...state, storyDice: { ...state.storyDice, [chapterIndex]: action.face } };
       }
       case 'NEXT_CHAPTER':
         if (state.phase !== 'gameplay') return state;

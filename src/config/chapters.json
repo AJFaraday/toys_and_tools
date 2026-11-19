@@ -3,7 +3,7 @@
     "Set the scene",
     "Meet the thing",
     "Have an adventure",
-    "TWIST!",
+    { "label": "TWIST!", "actions": ["StoryDice"] },
     "Solve a problem",
     "Save the day!"
   ]

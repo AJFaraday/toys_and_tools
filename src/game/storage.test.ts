@@ -28,10 +28,10 @@ describe('storage', () => {
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
-  it('upgrades games saved before special ability uses were tracked', () => {
-    const { abilityUses, ...oldSave } = { ...createInitialState(), playerCount: 2 };
+  it('upgrades games saved before special ability uses and story dice were tracked', () => {
+    const { abilityUses, storyDice, ...oldSave } = { ...createInitialState(), playerCount: 2 };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(oldSave));
-    expect(loadGame()).toEqual({ ...oldSave, abilityUses: {} });
+    expect(loadGame()).toEqual({ ...oldSave, abilityUses: {}, storyDice: {} });
   });
 
   it('ignores corrupt or unexpected data', () => {

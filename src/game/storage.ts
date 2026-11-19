@@ -24,11 +24,12 @@ const isGameState = (value: unknown): value is GameState =>
   typeof value.chapterIndex === 'number' &&
   isRecord(value.rollsUsed) &&
   isRecord(value.lastRoll) &&
-  isRecord(value.abilityUses);
+  isRecord(value.abilityUses) &&
+  isRecord(value.storyDice);
 
 // Fills in fields added since a game may have been saved, so games in progress survive upgrades.
 const upgrade = (value: unknown): unknown =>
-  isRecord(value) && value.abilityUses === undefined ? { ...value, abilityUses: {} } : value;
+  isRecord(value) ? { abilityUses: {}, storyDice: {}, ...value } : value;
 
 export const loadGame = (storage: Storage | null = getStorage()): GameState | null => {
   if (!storage) return null;

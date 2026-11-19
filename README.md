@@ -21,6 +21,8 @@ Play it at https://ajfaraday.github.io/toys_and_tools/
    - Each character can use their **special ability** a limited number of times in the whole
      game (2 by default). Using it makes a roll of the ability's type (Toys or Tools), which doesn't
      count towards that chapter's rolls.
+   - In the **TWIST!** chapter a **story dice** is rolled as soon as the chapter starts, showing an
+     emoji to bring something new into the story. It is rolled once per game.
 
 Press **Enter** to move on to the next step or chapter (or to submit a name or answer while typing).
 You can step back one chapter, and **Reset game** (with confirmation) starts over at any time.
@@ -37,7 +39,8 @@ add or change options, and lists can be any length.
 | --- | --- |
 | `setting.json` | Story blocks in order. Each has a `leadIn` and a list of `options`. An option can be a string, or `{ "text": "a talking {input}", "inputLabel": "Which animal?" }` to ask the players for a word. `{count}` and `{children}` are replaced with the number of players. |
 | `characters.json` | `toys`, `tools`, and `abilities` (each with a `name` and a `rollType` of `"toys"` or `"tools"`, showing which roll decides it). |
-| `chapters.json` | Chapter names, in order. |
+| `chapters.json` | Chapters, in order. A chapter is a name, or `{ "label": "TWIST!", "actions": ["StoryDice"] }` to add components to it. The available actions are `StoryDice`. |
+| `storyDice.json` | The `faces` of the story dice: a list of emoji. Needed if any chapter uses `StoryDice`. |
 | `rules.json` | `minPlayers`, `maxPlayers`, `defaultPlayers`, `rollsPerChapter`, `abilityUsesPerGame` (special ability uses per character for the whole game; 2 if left out), `numberWords` used in the story, and the `childNoun`. |
 
 The maximum number of players is also limited by the shortest of the toys, tools and abilities

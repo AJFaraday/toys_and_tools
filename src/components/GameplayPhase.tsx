@@ -4,6 +4,7 @@ import { Rng, roll2d6 } from '../game/dice';
 import { resolveRoll } from '../game/rules';
 import { GameAction, GameState, abilityUsesRemaining, isLastChapter, rollsRemaining } from '../game/state';
 import { CharacterCard } from './CharacterCard';
+import { chapterActionComponents } from './chapterActions';
 
 interface Props {
   state: GameState;
@@ -14,11 +15,12 @@ interface Props {
 
 export const GameplayPhase = ({ state, dispatch, rng, config }: Props) => {
   const lastChapter = isLastChapter(state, config);
+  const chapter = config.chapters[state.chapterIndex];
 
   return (
     <section>
       <h2>
-        Chapter {state.chapterIndex + 1} of {config.chapters.length}: {config.chapters[state.chapterIndex]}
+        Chapter {state.chapterIndex + 1} of {config.chapters.length}: {chapter.label}
       </h2>
       <p>
         <button type="button" disabled={state.chapterIndex === 0} onClick={() => dispatch({ type: 'PREV_CHAPTER' })}>
@@ -34,6 +36,19 @@ export const GameplayPhase = ({ state, dispatch, rng, config }: Props) => {
           </button>
         )}
       </p>
+
+      {chapter.actions.map((action) => {
+        const ChapterActionComponent = chapterActionComponents[action];
+        return (
+          <ChapterActionComponent
+            key={`${state.chapterIndex}-${action}`}
+            state={state}
+            dispatch={dispatch}
+            rng={rng}
+            config={config}
+          />
+        );
+      })}
 
       {state.characters.map((character) => (
         <CharacterCard
