@@ -414,41 +414,6 @@ h2 {
   gap: 10px;
 }
 
-.mood-badge {
-  flex: none;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 3.2rem;
-  height: 3.2rem;
-  border-radius: 50%;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.mood-badge--toys {
-  background: var(--toys);
-}
-
-.mood-badge--tools {
-  background: var(--tools);
-  color: #fff;
-}
-
-.mood-badge--neutral {
-  background: var(--neutral);
-  color: #fff;
-}
-
-.mood-badge__icon {
-  font-size: 1rem;
-}
-
-.mood-badge__number {
-  font-size: 1.3rem;
-}
-
 /* Mood meter: every possible total, tools zone on the left, toys zone on the right. */
 
 .meter {
@@ -944,5 +909,57 @@ h2 {
 
   .title {
     font-size: 1.6rem;
+  }
+}
+
+/* Mood meter intro: fills from the left, bounces at both ends, then settles on the mood. */
+
+.meter__cell--empty {
+  background: transparent;
+  color: transparent;
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+
+.meter--intro .meter__cell {
+  transition: none;
+}
+
+.meter--intro .meter__cell--mood {
+  animation: hop 120ms ease-out;
+}
+
+.meter--intro .meter__cell--bounce-top {
+  animation: bounce-top 260ms cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+.meter--intro .meter__cell--bounce-bottom {
+  animation: bounce-bottom 260ms cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+.meter--settled .meter__cell--mood {
+  animation: land 500ms cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+@keyframes bounce-top {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  40% {
+    transform: translateX(4px) scale(1.25, 0.85);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes bounce-bottom {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  40% {
+    transform: translateX(-4px) scale(1.25, 0.85);
+  }
+  100% {
+    transform: translateX(0) scale(1);
   }
 }

@@ -3,10 +3,11 @@ import { GameConfig } from '../game/config';
 import { MoodType, abilityLabel, moodType } from '../game/rules';
 import { ItemIcon } from './ui/ItemIcon';
 import { MoodMeter } from './ui/MoodMeter';
-import { reveal } from './ui/motion';
+import { REVEAL_STEP_MS, reveal } from './ui/motion';
+
+const MOOD_INDEX = 4;
 
 const moodTypeLabel: Record<MoodType, string> = { toys: 'toys mood', tools: 'tools mood', neutral: 'neutral mood' };
-export const moodTypeIcon: Record<MoodType, string> = { toys: '🧸', tools: '🛠️', neutral: '⚖️' };
 
 interface Props {
   character: Character;
@@ -46,17 +47,13 @@ export const CharacterDetails = ({ character, config, animate = false, meter }: 
           <span className={`badge badge--${ability.rollType}`}>{abilityLabel(ability.rollType)}</span>
         </dd>
       </div>
-      <div {...reveal(animate, 4, 'details__mood')}>
+      <div {...reveal(animate, MOOD_INDEX, 'details__mood')}>
         <dt className="visually-hidden">Mood</dt>
         <dd>
           <span className="visually-hidden">
             {mood} ({moodTypeLabel[mType]})
           </span>
-          <span className={`mood-badge mood-badge--${mType}`} aria-hidden="true">
-            <span className="mood-badge__icon">{moodTypeIcon[mType]}</span>
-            <span className="mood-badge__number">{mood}</span>
-          </span>
-          <MoodMeter mood={mood} {...meter} />
+          <MoodMeter mood={mood} introDelay={animate ? MOOD_INDEX * REVEAL_STEP_MS + 100 : undefined} {...meter} />
         </dd>
       </div>
     </dl>
