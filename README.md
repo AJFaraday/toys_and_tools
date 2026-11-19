@@ -39,7 +39,7 @@ add or change options, and lists can be any length.
 | File | Contents |
 | --- | --- |
 | `setting.json` | Story blocks in order. Each has a `leadIn` and a list of `options`. An option can be a string, or `{ "text": "a talking {input}", "inputLabel": "Which animal?" }` to ask the players for a word. `{count}` and `{children}` are replaced with the number of players. |
-| `characters.json` | `toys`, `tools`, and `abilities` (each with a `name` and a `rollType` of `"toys"` or `"tools"`, showing which roll decides it). |
+| `characters.json` | `toys` and `tools`: each a name, or `{ "name": "Teddy", "emoji": "🧸" }` to show it as a picture. `abilities`: each with a `name`, an optional `emoji`, and a `rollType` of `"toys"` or `"tools"`, showing which roll decides it. |
 | `chapters.json` | Chapters, in order. A chapter is a name, or `{ "label": "TWIST!", "actions": ["StoryDice"] }` to add components to it. The available actions are `StoryDice`. |
 | `storyDice.json` | The `faces` of the story dice: a list of emoji. Needed if any chapter uses `StoryDice`. |
 | `rules.json` | `minPlayers`, `maxPlayers`, `defaultPlayers`, `rollsPerChapter`, `abilityUsesPerGame` (special ability uses per character for the whole game; 2 if left out), `numberWords` used in the story, and the `childNoun`. |
@@ -56,7 +56,12 @@ the tests (`src/game/config.test.ts`), which explain what's wrong if a file is i
 - `npm run build` – build for production
 
 Game rules are plain TypeScript in [`src/game`](src/game); the UI is in
-[`src/components`](src/components).
+[`src/components`](src/components). Styles are plain CSS in
+[`src/styles/theme.css`](src/styles/theme.css): yellow for toys, teal for tools.
+
+New things fade in, rolls tumble and hop along the mood meter, and the story dice flickers before it
+settles. Animations only play for things that happen while you watch (not after a reload), can be
+skipped with a tap, and are switched off if the device asks for reduced motion.
 
 ## Deployment
 

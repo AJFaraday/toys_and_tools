@@ -1,26 +1,26 @@
 {
   "toys": [
-    "Teddy",
-    "Blanket",
-    "Ball",
-    "Stick",
-    "Toy car",
-    "Skipping rope"
+    { "name": "Teddy", "emoji": "🧸" },
+    { "name": "Blanket", "emoji": "🧣" },
+    { "name": "Ball", "emoji": "⚽" },
+    { "name": "Stick", "emoji": "🪵" },
+    { "name": "Toy car", "emoji": "🚗" },
+    { "name": "Skipping rope", "emoji": "🪢" }
   ],
   "tools": [
-    "Book",
-    "Paper and pencil",
-    "First aid kit",
-    "Map",
-    "Cupcakes",
-    "Torch"
+    { "name": "Book", "emoji": "📖" },
+    { "name": "Paper and pencil", "emoji": "✏️" },
+    { "name": "First aid kit", "emoji": "🩹" },
+    { "name": "Map", "emoji": "🗺️" },
+    { "name": "Cupcakes", "emoji": "🧁" },
+    { "name": "Torch", "emoji": "🔦" }
   ],
   "abilities": [
-    { "name": "Jump like a frog", "rollType": "toys" },
-    { "name": "Make a sound like an animal", "rollType": "toys" },
-    { "name": "Run really fast", "rollType": "toys" },
-    { "name": "Make something", "rollType": "tools" },
-    { "name": "Climb something", "rollType": "tools" },
-    { "name": "Find something", "rollType": "tools" }
+    { "name": "Jump like a frog", "emoji": "🐸", "rollType": "toys" },
+    { "name": "Make a sound like an animal", "emoji": "🦁", "rollType": "toys" },
+    { "name": "Run really fast", "emoji": "🏃", "rollType": "toys" },
+    { "name": "Make something", "emoji": "🔨", "rollType": "tools" },
+    { "name": "Climb something", "emoji": "🧗", "rollType": "tools" },
+    { "name": "Find something", "emoji": "🔍", "rollType": "tools" }
   ]
 }

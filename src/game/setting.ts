@@ -29,21 +29,31 @@ export const countWord = (count: number, rules: Rules): string => rules.numberWo
 
 const MISSING_INPUT = '…';
 
-export const renderIntro = (
-  setting: SettingLine[],
-  playerCount: number,
-  rules: Rules = gameConfig.rules,
-): string => {
-  const children = playerCount === 1 ? rules.childNoun.singular : rules.childNoun.plural;
-  const fillTemplate = (template: string): string =>
-    template.split('{count}').join(countWord(playerCount, rules)).split('{children}').join(children);
+export interface IntroPart {
+  leadIn: string;
+  text: string;
+}
 
-  const sentence = setting
-    .map((line) => {
-      const input = (line.input ?? '').trim() || MISSING_INPUT;
-      // Fill config placeholders before inserting free text, so user input is never treated as a template.
-      return fillTemplate(`${line.leadIn} ${line.text}`).split(INPUT_PLACEHOLDER).join(input);
-    })
-    .join(', ');
-  return `${sentence}.`;
+// Each line of the intro with its placeholders filled, so the lead-in and the chosen option can be shown apart.
+export const introParts = (setting: SettingLine[], playerCount: number, rules: Rules = gameConfig.rules): IntroPart[] => {
+  const children = playerCount === 1 ? rules.childNoun.singular : rules.childNoun.plural;
+  // Fill config placeholders before inserting free text, so user input is never treated as a template.
+  const fill = (template: string, input: string): string =>
+    template
+      .split('{count}')
+      .join(countWord(playerCount, rules))
+      .split('{children}')
+      .join(children)
+      .split(INPUT_PLACEHOLDER)
+      .join(input);
+
+  return setting.map((line) => {
+    const input = (line.input ?? '').trim() || MISSING_INPUT;
+    return { leadIn: fill(line.leadIn, input), text: fill(line.text, input) };
+  });
 };
+
+export const renderIntro = (setting: SettingLine[], playerCount: number, rules: Rules = gameConfig.rules): string =>
+  `${introParts(setting, playerCount, rules)
+    .map((part) => `${part.leadIn} ${part.text}`)
+    .join(', ')}.`;

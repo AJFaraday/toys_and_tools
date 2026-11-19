@@ -57,6 +57,20 @@ describe('parseConfig', () => {
     expect(config.settingBlocks[0].options).toHaveLength(1);
   });
 
+  it('reads toys and tools as names or names with an emoji', () => {
+    const config = parseConfig(
+      withChange((raw) => {
+        raw.characters.toys = ['Kite', { name: 'Ball', emoji: '⚽' }, { name: 'Teddy' }];
+        raw.characters.abilities[0].emoji = '🐸';
+        delete raw.characters.abilities[1].emoji;
+        raw.rules.defaultPlayers = 1;
+      }),
+    );
+    expect(config.toys).toEqual([{ name: 'Kite' }, { name: 'Ball', emoji: '⚽' }, { name: 'Teddy' }]);
+    expect(config.abilities[0].emoji).toBe('🐸');
+    expect(config.abilities[1]).not.toHaveProperty('emoji');
+  });
+
   it('defaults special ability uses to 2', () => {
     const config = parseConfig(withChange((raw) => delete raw.rules.abilityUsesPerGame));
     expect(config.rules.abilityUsesPerGame).toBe(2);
@@ -107,6 +121,10 @@ describe('parseConfig', () => {
   it.each<[string, (raw: any) => void]>([
     ['an empty toy list', (raw) => (raw.characters.toys = [])],
     ['duplicate tools', (raw) => (raw.characters.tools = ['Map', 'Map', 'Book'])],
+    ['duplicate toy names', (raw) => (raw.characters.toys = ['Ball', { name: 'Ball', emoji: '⚽' }, 'Kite'])],
+    ['a toy without a name', (raw) => (raw.characters.toys[0] = { emoji: '🧸' })],
+    ['an empty toy emoji', (raw) => (raw.characters.toys[0] = { name: 'Teddy', emoji: ' ' })],
+    ['an empty ability emoji', (raw) => (raw.characters.abilities[0].emoji = '')],
     ['an unknown ability roll type', (raw) => (raw.characters.abilities[0].rollType = 'magic')],
     ['no chapters', (raw) => (raw.chapters.chapters = [])],
     ['duplicate chapter labels', (raw) => (raw.chapters.chapters = ['Start', { label: 'Start' }])],

@@ -25,8 +25,8 @@ export const createCharacter = (
   const trimmed = name.trim();
   if (trimmed === '') throw new Error('A character needs a name');
 
-  const toy = pickUnused(config.toys, new Set(existing.map((c) => c.toy)), (t) => t, rng, 'toys');
-  const tool = pickUnused(config.tools, new Set(existing.map((c) => c.tool)), (t) => t, rng, 'tools');
+  const toy = pickUnused(config.toys, new Set(existing.map((c) => c.toy)), (t) => t.name, rng, 'toys').name;
+  const tool = pickUnused(config.tools, new Set(existing.map((c) => c.tool)), (t) => t.name, rng, 'tools').name;
   const ability = pickUnused(
     config.abilities,
     new Set(existing.map((c) => c.ability.name)),

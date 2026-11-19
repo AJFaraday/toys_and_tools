@@ -13,8 +13,8 @@ describe('createCharacter', () => {
     const character = createCharacter('  Alice ', [], Math.random);
     expect(character.name).toBe('Alice');
     expect(character.id).toBe('character-1');
-    expect(gameConfig.toys).toContain(character.toy);
-    expect(gameConfig.tools).toContain(character.tool);
+    expect(gameConfig.toys.map((t) => t.name)).toContain(character.toy);
+    expect(gameConfig.tools.map((t) => t.name)).toContain(character.tool);
     expect(gameConfig.abilities).toContainEqual(character.ability);
     expect(character.mood).toBeGreaterThanOrEqual(2);
     expect(character.mood).toBeLessThanOrEqual(12);
@@ -38,8 +38,8 @@ describe('createCharacter', () => {
   it('only picks from items that are still unused', () => {
     const first = createCharacter('A', [], () => 0);
     const second = createCharacter('B', [first], () => 0);
-    expect(second.toy).toBe(gameConfig.toys[1]);
-    expect(second.tool).toBe(gameConfig.tools[1]);
+    expect(second.toy).toBe(gameConfig.toys[1].name);
+    expect(second.tool).toBe(gameConfig.tools[1].name);
     expect(second.ability).toEqual(gameConfig.abilities[1]);
   });
 
@@ -48,7 +48,7 @@ describe('createCharacter', () => {
   });
 
   it('throws when the config has run out of unique items', () => {
-    const config = { ...gameConfig, toys: ['Teddy'] };
+    const config = { ...gameConfig, toys: [{ name: 'Teddy' }] };
     const first = createCharacter('A', [], Math.random, config);
     expect(() => createCharacter('B', [first], Math.random, config)).toThrow(/No unused toys/);
   });

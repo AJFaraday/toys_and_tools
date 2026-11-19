@@ -6,6 +6,8 @@ export interface DiceRoll {
 }
 
 export const DIE_SIDES = 6;
+export const MIN_ROLL = 2;
+export const MAX_ROLL = DIE_SIDES * 2;
 
 export const rollDie = (rng: Rng): number => Math.floor(rng() * DIE_SIDES) + 1;
 

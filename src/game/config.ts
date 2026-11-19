@@ -17,8 +17,13 @@ export interface SettingBlock {
   options: SettingOption[];
 }
 
-export interface Ability {
+// A toy or tool. The emoji is optional; the name is shown when there is none.
+export interface Item {
   name: string;
+  emoji?: string;
+}
+
+export interface Ability extends Item {
   rollType: RollType;
 }
 
@@ -44,8 +49,8 @@ export interface Chapter {
 
 export interface GameConfig {
   settingBlocks: SettingBlock[];
-  toys: string[];
-  tools: string[];
+  toys: Item[];
+  tools: Item[];
   abilities: Ability[];
   chapters: Chapter[];
   rules: Rules;
@@ -149,6 +154,22 @@ const parseSettingBlocks = (raw: unknown): SettingBlock[] => {
   return blocks;
 };
 
+const parseEmoji = (value: unknown, path: string): { emoji?: string } =>
+  value === undefined ? {} : { emoji: requireString(value, `${path}.emoji`) };
+
+const parseItems = (raw: unknown, path: string): Item[] => {
+  const items = requireList(raw, path).map((item, i): Item => {
+    const itemPath = `${path}[${i}]`;
+    if (typeof item === 'string') return { name: requireString(item, itemPath) };
+    if (!isRecord(item)) throw new ConfigError(`${itemPath} must be a string or { name, emoji }`);
+    return { name: requireString(item.name, `${itemPath}.name`), ...parseEmoji(item.emoji, itemPath) };
+  });
+  if (new Set(items.map((item) => item.name)).size !== items.length) {
+    throw new ConfigError(`${path} must not contain duplicate names`);
+  }
+  return items;
+};
+
 const parseAbilities = (raw: unknown): Ability[] => {
   const abilities = requireList(raw, 'characters.abilities').map((ability, i): Ability => {
     const path = `characters.abilities[${i}]`;
@@ -157,7 +178,7 @@ const parseAbilities = (raw: unknown): Ability[] => {
     if (rollType !== 'toys' && rollType !== 'tools') {
       throw new ConfigError(`${path}.rollType must be "toys" or "tools"`);
     }
-    return { name: requireString(ability.name, `${path}.name`), rollType };
+    return { name: requireString(ability.name, `${path}.name`), rollType, ...parseEmoji(ability.emoji, path) };
   });
   if (new Set(abilities.map((a) => a.name)).size !== abilities.length) {
     throw new ConfigError('characters.abilities must not contain duplicate names');
@@ -254,8 +275,8 @@ export const parseConfig = (raw: RawConfig): GameConfig => {
 
   const config: GameConfig = {
     settingBlocks: parseSettingBlocks(raw.setting),
-    toys: requireUniqueStrings(raw.characters.toys, 'characters.toys'),
-    tools: requireUniqueStrings(raw.characters.tools, 'characters.tools'),
+    toys: parseItems(raw.characters.toys, 'characters.toys'),
+    tools: parseItems(raw.characters.tools, 'characters.tools'),
     abilities: parseAbilities(raw.characters.abilities),
     chapters,
     rules: parseRules(raw.rules),
@@ -277,3 +298,6 @@ export const gameConfig: GameConfig = parseConfig({
   rules: rulesJson,
   storyDice: storyDiceJson,
 });
+
+export const findItem = <T extends Item>(items: readonly T[], name: string): T | undefined =>
+  items.find((item) => item.name === name);
