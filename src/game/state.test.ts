@@ -1,5 +1,5 @@
 import { Character } from './characters';
-import { gameConfig } from './config';
+import { effectiveMaxPlayers, gameConfig } from './config';
 import { RollResult } from './rules';
 import { SettingLine } from './setting';
 import {
@@ -177,6 +177,24 @@ describe('reset', () => {
   it('returns to a new game from any phase', () => {
     const state = play([...toGameplay(2), { type: 'RESET' }]);
     expect(state).toEqual(createInitialState());
+  });
+
+  it('starts new games from the given new game state', () => {
+    const reducer = createGameReducer(gameConfig, () => createInitialState(gameConfig, 5));
+    const toEnd = gameConfig.chapters.slice(1).map((): GameAction => ({ type: 'NEXT_CHAPTER' }));
+    expect(play([...toGameplay(2), { type: 'RESET' }], reducer).playerCount).toBe(5);
+    const finished = play([...toGameplay(2), ...toEnd, { type: 'FINISH' }], reducer);
+    expect(finished).toEqual({ ...createInitialState(gameConfig, 5), phase: 'complete' });
+  });
+});
+
+describe('createInitialState', () => {
+  it('uses a given player count within the allowed range', () => {
+    expect(createInitialState(gameConfig, 4).playerCount).toBe(4);
+    expect(createInitialState(gameConfig, 99).playerCount).toBe(effectiveMaxPlayers(gameConfig));
+    expect(createInitialState(gameConfig, 0).playerCount).toBe(gameConfig.rules.minPlayers);
+    expect(createInitialState(gameConfig, 2.5).playerCount).toBe(gameConfig.rules.defaultPlayers);
+    expect(createInitialState(gameConfig).playerCount).toBe(gameConfig.rules.defaultPlayers);
   });
 });
 

@@ -1,12 +1,15 @@
 import { createInitialState } from './state';
 import {
   NAMES_STORAGE_KEY,
+  PLAYER_COUNT_STORAGE_KEY,
   STORAGE_KEY,
   clearGame,
   loadGame,
   loadNames,
+  loadPlayerCount,
   saveGame,
   saveName,
+  savePlayerCount,
 } from './storage';
 
 beforeEach(() => window.localStorage.clear());
@@ -104,5 +107,34 @@ describe('saved character names', () => {
     expect(loadNames(broken)).toEqual([]);
     expect(() => saveName(0, 'Alice', broken)).not.toThrow();
     expect(loadNames(null)).toEqual([]);
+  });
+});
+
+describe('saved player count', () => {
+  it('saves the player count separately from the game', () => {
+    expect(loadPlayerCount()).toBeUndefined();
+    savePlayerCount(4);
+    clearGame();
+    expect(loadPlayerCount()).toBe(4);
+  });
+
+  it('ignores corrupt or unexpected data', () => {
+    window.localStorage.setItem(PLAYER_COUNT_STORAGE_KEY, '{not json');
+    expect(loadPlayerCount()).toBeUndefined();
+    window.localStorage.setItem(PLAYER_COUNT_STORAGE_KEY, '"four"');
+    expect(loadPlayerCount()).toBeUndefined();
+  });
+
+  it('copes with storage being unavailable', () => {
+    const broken = {
+      getItem: () => {
+        throw new Error('no');
+      },
+      setItem: () => {
+        throw new Error('no');
+      },
+    } as unknown as Storage;
+    expect(loadPlayerCount(broken)).toBeUndefined();
+    expect(() => savePlayerCount(2, broken)).not.toThrow();
   });
 });

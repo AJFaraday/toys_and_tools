@@ -430,3 +430,28 @@ describe('story dice', () => {
     expect(screen.getByRole('heading', { name: new RegExp(`Chapter ${twist + 2} of`) })).toBeInTheDocument();
   });
 });
+
+describe('remembered player count', () => {
+  it('starts new games and reloads with the last number of players', () => {
+    jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const { unmount } = render(<App rng={rng} />);
+    choosePlayers(4);
+    unmount();
+
+    render(<App rng={rng} />);
+    expect(screen.getByLabelText('Number of players')).toHaveValue('4');
+    choosePlayers(2);
+    click('Generate story');
+    fillStoryInputs();
+    click('Continue to character creation');
+    createCharacters('Alice', 'Bob');
+    click('Reset game');
+    expect(screen.getByLabelText('Number of players')).toHaveValue('2');
+
+    startAdventure('Alice');
+    for (let i = 1; i < gameConfig.chapters.length; i += 1) click('Next chapter');
+    click('Finish adventure');
+    click('New game');
+    expect(screen.getByLabelText('Number of players')).toHaveValue('1');
+  });
+});

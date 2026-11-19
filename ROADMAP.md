@@ -3,7 +3,7 @@
 - [x] Game mechanics
 - [x] Store character names between games (local)
 - [x] Deploy to github pages
-- [ ] Twisty action on twist chapter
+- [x] Twisty action on twist chapter
 - [ ] Design in-game UI
 - [ ] Design character creation UI
 - [ ] Style the page

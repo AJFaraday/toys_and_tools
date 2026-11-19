@@ -37,9 +37,13 @@ export type GameAction =
   | { type: 'FINISH' }
   | { type: 'RESET' };
 
-export const createInitialState = (config: GameConfig = gameConfig): GameState => ({
+// The player count within the allowed range, or null if it is not a whole number.
+export const clampPlayerCount = (count: number, config: GameConfig = gameConfig): number | null =>
+  Number.isInteger(count) ? Math.min(Math.max(count, config.rules.minPlayers), effectiveMaxPlayers(config)) : null;
+
+export const createInitialState = (config: GameConfig = gameConfig, playerCount?: number): GameState => ({
   phase: 'setting',
-  playerCount: config.rules.defaultPlayers,
+  playerCount: clampPlayerCount(playerCount ?? config.rules.defaultPlayers, config) ?? config.rules.defaultPlayers,
   setting: null,
   characters: [],
   chapterIndex: 0,
@@ -67,14 +71,15 @@ export const isLastChapter = (state: GameState, config: GameConfig = gameConfig)
 const changeChapter = (state: GameState, chapterIndex: number): GameState =>
   chapterIndex === state.chapterIndex ? state : { ...state, chapterIndex, rollsUsed: {}, lastRoll: {} };
 
+// `newGame` gives the state a reset or finished game starts again from (e.g. with a remembered player count).
 export const createGameReducer =
-  (config: GameConfig = gameConfig) =>
+  (config: GameConfig = gameConfig, newGame: () => GameState = () => createInitialState(config)) =>
   (state: GameState, action: GameAction): GameState => {
     switch (action.type) {
       case 'SET_PLAYER_COUNT': {
         if (state.phase !== 'setting') return state;
-        const count = Math.min(Math.max(action.count, config.rules.minPlayers), effectiveMaxPlayers(config));
-        return Number.isInteger(count) ? { ...state, playerCount: count } : state;
+        const count = clampPlayerCount(action.count, config);
+        return count === null ? state : { ...state, playerCount: count };
       }
       case 'GENERATE_SETTING':
         if (state.phase !== 'setting' || state.setting !== null) return state;
@@ -131,9 +136,9 @@ export const createGameReducer =
         return changeChapter(state, Math.max(state.chapterIndex - 1, 0));
       case 'FINISH':
         if (state.phase !== 'gameplay' || !isLastChapter(state, config)) return state;
-        return { ...createInitialState(config), phase: 'complete' };
+        return { ...newGame(), phase: 'complete' };
       case 'RESET':
-        return createInitialState(config);
+        return newGame();
       default:
         return state;
     }

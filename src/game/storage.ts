@@ -3,6 +3,7 @@ import { GameState, PHASES } from './state';
 export const STORAGE_KEY = 'toys-and-tools:v1';
 // Kept separately from the game so names survive resets and finished games.
 export const NAMES_STORAGE_KEY = 'toys-and-tools:names:v1';
+export const PLAYER_COUNT_STORAGE_KEY = 'toys-and-tools:player-count:v1';
 
 const getStorage = (): Storage | null => {
   try {
@@ -77,5 +78,22 @@ export const saveName = (index: number, name: string, storage: Storage | null = 
     storage?.setItem(NAMES_STORAGE_KEY, JSON.stringify(names));
   } catch {
     // Ignore unavailable storage; the name just won't be remembered.
+  }
+};
+
+export const loadPlayerCount = (storage: Storage | null = getStorage()): number | undefined => {
+  try {
+    const parsed: unknown = JSON.parse(storage?.getItem(PLAYER_COUNT_STORAGE_KEY) ?? 'null');
+    return typeof parsed === 'number' ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+export const savePlayerCount = (count: number, storage: Storage | null = getStorage()): void => {
+  try {
+    storage?.setItem(PLAYER_COUNT_STORAGE_KEY, JSON.stringify(count));
+  } catch {
+    // Ignore unavailable storage; the default player count is used instead.
   }
 };

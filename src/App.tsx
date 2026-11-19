@@ -8,7 +8,7 @@ import { GameConfig, gameConfig } from './game/config';
 import { Rng } from './game/dice';
 import { renderIntro } from './game/setting';
 import { advanceAction, createGameReducer, createInitialState } from './game/state';
-import { clearGame, loadGame, saveGame } from './game/storage';
+import { clearGame, loadGame, loadPlayerCount, saveGame, savePlayerCount } from './game/storage';
 
 interface Props {
   rng?: Rng;
@@ -16,13 +16,18 @@ interface Props {
 }
 
 function App({ rng = Math.random, config = gameConfig }: Props) {
-  const reducer = useMemo(() => createGameReducer(config), [config]);
-  const [state, dispatch] = useReducer(reducer, undefined, () => loadGame() ?? createInitialState(config));
+  const reducer = useMemo(
+    () => createGameReducer(config, () => createInitialState(config, loadPlayerCount())),
+    [config],
+  );
+  const [state, dispatch] = useReducer(reducer, undefined, () => loadGame() ?? createInitialState(config, loadPlayerCount()));
 
   useEffect(() => {
     // Nothing worth keeping until a story exists; a finished game is cleared too.
     if (state.phase === 'complete' || state.setting === null) clearGame();
     else saveGame(state);
+    // Remembered separately, so the next game starts with the same number of players.
+    if (state.phase === 'setting') savePlayerCount(state.playerCount);
   }, [state]);
 
   useEffect(() => {
