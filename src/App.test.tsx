@@ -5,6 +5,8 @@ import { gameConfig } from './game/config';
 import { STORAGE_KEY } from './game/storage';
 import { face } from './game/testUtils';
 
+const ROLLS = gameConfig.rules.rollsPerChapter;
+
 // A controllable rng: every call returns `rngValue`.
 let rngValue = 0;
 const rng = () => rngValue;
@@ -227,11 +229,11 @@ describe('gameplay', () => {
       'Jump like a frog: Toys roll: 6 + 6 = 12 against mood 2 — Pass by 10',
     );
     expect(card('Alice').getByText('Special ability uses left: 1 of 2')).toBeInTheDocument();
-    expect(card('Alice').getByText('Rolls left this chapter: 3 of 3')).toBeInTheDocument();
+    expect(card('Alice').getByText(`Rolls left this chapter: ${ROLLS} of ${ROLLS}`)).toBeInTheDocument();
 
     click('Next chapter');
     expect(card('Alice').getByText('Special ability uses left: 1 of 2')).toBeInTheDocument();
-    for (let i = 0; i < 3; i += 1) fireEvent.click(card('Alice').getByRole('button', { name: 'Roll Toys' }));
+    for (let i = 0; i < ROLLS; i += 1) fireEvent.click(card('Alice').getByRole('button', { name: 'Roll Toys' }));
     expect(card('Alice').getByRole('button', { name: 'Roll Toys' })).toBeDisabled();
     expect(useAbility()).toBeEnabled();
 
@@ -248,23 +250,22 @@ describe('gameplay', () => {
     expect(screen.getByRole('button', { name: 'Previous chapter' })).toBeDisabled();
 
     const roll = () => fireEvent.click(card('Alice').getByRole('button', { name: 'Roll Toys' }));
-    roll();
-    roll();
-    expect(card('Alice').getByText('Rolls left this chapter: 1 of 3')).toBeInTheDocument();
+    for (let i = 0; i < ROLLS - 1; i += 1) roll();
+    expect(card('Alice').getByText(`Rolls left this chapter: 1 of ${ROLLS}`)).toBeInTheDocument();
     roll();
     expect(card('Alice').getByRole('button', { name: 'Roll Toys' })).toBeDisabled();
     expect(card('Alice').getByRole('button', { name: 'Roll Tools' })).toBeDisabled();
-    expect(card('Bob').getByText('Rolls left this chapter: 3 of 3')).toBeInTheDocument();
+    expect(card('Bob').getByText(`Rolls left this chapter: ${ROLLS} of ${ROLLS}`)).toBeInTheDocument();
 
     click('Next chapter');
     expect(screen.getByRole('heading', { name: 'Chapter 2 of 6: Meet the thing' })).toBeInTheDocument();
-    expect(card('Alice').getByText('Rolls left this chapter: 3 of 3')).toBeInTheDocument();
+    expect(card('Alice').getByText(`Rolls left this chapter: ${ROLLS} of ${ROLLS}`)).toBeInTheDocument();
     expect(card('Alice').getByRole('status')).toBeEmptyDOMElement();
 
     roll();
     click('Previous chapter');
     expect(screen.getByRole('heading', { name: 'Chapter 1 of 6: Set the scene' })).toBeInTheDocument();
-    expect(card('Alice').getByText('Rolls left this chapter: 3 of 3')).toBeInTheDocument();
+    expect(card('Alice').getByText(`Rolls left this chapter: ${ROLLS} of ${ROLLS}`)).toBeInTheDocument();
   });
 
   it('finishes the adventure after the last chapter and clears the saved game', () => {
@@ -315,7 +316,7 @@ describe('persistence', () => {
     render(<App rng={rng} />);
     expect(screen.getByRole('heading', { name: 'Chapter 2 of 6: Meet the thing' })).toBeInTheDocument();
     expect(screen.getByText(/two little children/)).toBeInTheDocument();
-    expect(card('Bob').getByText('Rolls left this chapter: 2 of 3')).toBeInTheDocument();
+    expect(card('Bob').getByText(`Rolls left this chapter: ${ROLLS - 1} of ${ROLLS}`)).toBeInTheDocument();
     expect(card('Bob').getByRole('status')).toHaveTextContent('Toys roll: 1 + 1 = 2');
   });
 });
@@ -373,7 +374,7 @@ describe('keyboard', () => {
     pressEnter();
 
     expect(screen.getByRole('heading', { name: /Chapter 2 of/ })).toBeInTheDocument();
-    expect(card('Alice').getByText('Rolls left this chapter: 3 of 3')).toBeInTheDocument();
+    expect(card('Alice').getByText(`Rolls left this chapter: ${ROLLS} of ${ROLLS}`)).toBeInTheDocument();
     expect(card('Alice').getByRole('status')).toBeEmptyDOMElement();
   });
 });

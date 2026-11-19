@@ -13,6 +13,8 @@ import {
   rollsRemaining,
 } from './state';
 
+const ROLLS = gameConfig.rules.rollsPerChapter;
+
 const setting: SettingLine[] = [
   { blockId: 'time', leadIn: 'It was a', text: 'foggy evening' },
   { blockId: 'meeting', leadIn: 'where they met', text: 'a talking {input}', inputLabel: 'Which animal?' },
@@ -114,13 +116,13 @@ describe('gameplay phase', () => {
 
   it('records rolls and the latest result per character', () => {
     const state = play([roll], gameReducer, inGame);
-    expect(rollsRemaining(state, 'character-1')).toBe(2);
-    expect(rollsRemaining(state, 'character-2')).toBe(3);
+    expect(rollsRemaining(state, 'character-1')).toBe(ROLLS - 1);
+    expect(rollsRemaining(state, 'character-2')).toBe(ROLLS);
     expect(state.lastRoll['character-1']).toBe(result);
   });
 
   it('limits each character to the configured rolls per chapter', () => {
-    const state = play([roll, roll, roll, { ...roll, result: { ...result, total: 12 } }], gameReducer, inGame);
+    const state = play([...Array(ROLLS).fill(roll), { ...roll, result: { ...result, total: 12 } }], gameReducer, inGame);
     expect(rollsRemaining(state, 'character-1')).toBe(0);
     expect(state.lastRoll['character-1']).toBe(result);
   });
@@ -132,12 +134,12 @@ describe('gameplay phase', () => {
   it('resets rolls and results when moving forward or back a chapter', () => {
     const forward = play([roll, { type: 'NEXT_CHAPTER' }], gameReducer, inGame);
     expect(forward.chapterIndex).toBe(1);
-    expect(rollsRemaining(forward, 'character-1')).toBe(3);
+    expect(rollsRemaining(forward, 'character-1')).toBe(ROLLS);
     expect(forward.lastRoll).toEqual({});
 
     const back = play([roll, { type: 'PREV_CHAPTER' }], gameReducer, forward);
     expect(back.chapterIndex).toBe(0);
-    expect(rollsRemaining(back, 'character-1')).toBe(3);
+    expect(rollsRemaining(back, 'character-1')).toBe(ROLLS);
   });
 
   it('stays within the configured chapters', () => {
@@ -148,7 +150,7 @@ describe('gameplay phase', () => {
 
   it('keeps rolls when a chapter change has nowhere to go', () => {
     const state = play([roll, { type: 'PREV_CHAPTER' }], gameReducer, inGame);
-    expect(rollsRemaining(state, 'character-1')).toBe(2);
+    expect(rollsRemaining(state, 'character-1')).toBe(ROLLS - 1);
   });
 
   it('only finishes on the last chapter, clearing the game', () => {
@@ -241,14 +243,14 @@ describe('special abilities', () => {
     const state = play([useAbility], gameReducer, inGame);
     expect(abilityUsesRemaining(state, 'character-1')).toBe(1);
     expect(abilityUsesRemaining(state, 'character-2')).toBe(2);
-    expect(rollsRemaining(state, 'character-1')).toBe(3);
+    expect(rollsRemaining(state, 'character-1')).toBe(ROLLS);
     expect(state.lastRoll['character-1']).toEqual({ ...result, ability: 'Ability 1' });
   });
 
   it('limits uses across the whole game, not per chapter', () => {
     const state = play([useAbility, { type: 'NEXT_CHAPTER' }, useAbility, { type: 'NEXT_CHAPTER' }, useAbility], gameReducer, inGame);
     expect(abilityUsesRemaining(state, 'character-1')).toBe(0);
-    expect(rollsRemaining(state, 'character-1')).toBe(3);
+    expect(rollsRemaining(state, 'character-1')).toBe(ROLLS);
     expect(state.lastRoll['character-1']).toBeUndefined();
 
     expect(abilityUsesRemaining(play([{ type: 'PREV_CHAPTER' }], gameReducer, state), 'character-1')).toBe(0);
@@ -256,7 +258,7 @@ describe('special abilities', () => {
 
   it('can be used when the chapter rolls have run out', () => {
     const roll: GameAction = { type: 'ROLL', characterId: 'character-1', result };
-    const state = play([roll, roll, roll, useAbility], gameReducer, inGame);
+    const state = play([...Array(ROLLS).fill(roll), useAbility], gameReducer, inGame);
     expect(abilityUsesRemaining(state, 'character-1')).toBe(1);
     expect(rollsRemaining(state, 'character-1')).toBe(0);
     expect(state.lastRoll['character-1'].ability).toBe('Ability 1');

@@ -9,7 +9,13 @@
         "wet Wednesday afternoon",
         "foggy evening",
         "dark and stormy night",
-        "bright, moonlit night"
+        "bright, moonlit night",
+        "breezy spring morning",
+        "snowy winter's day",
+        "sleepy Sunday afternoon",
+        "windy autumn morning",
+        "warm and starry night",
+        "rainbow-filled afternoon"
       ]
     },
     {
@@ -21,7 +27,13 @@
         "found a secret tunnel",
         "went to the beach",
         "searched for treasure",
-        "set out to climb a mountain"
+        "set out to climb a mountain",
+        "sailed across the sea",
+        "went camping in a field",
+        "explored an old castle",
+        "flew up in a hot air balloon",
+        "visited a busy market",
+        "followed a trail of footprints"
       ]
     },
     {
@@ -33,7 +45,13 @@
         "a brave knight",
         "a tiny person",
         { "text": "a talking {input}", "inputLabel": "Choose an animal?" },
-        "a mean troll"
+        "a mean troll",
+        "a friendly dragon",
+        "a lost robot",
+        "a grumpy giant",
+        "a sneaky pirate",
+        "a sparkly fairy",
+        "a silly wizard"
       ]
     },
     {
@@ -45,7 +63,13 @@
         "cast a spell to make all the children sad",
         "find its way home",
         "rescue its friend",
-        "find a treasure"
+        "find a treasure",
+        "build the biggest sandcastle",
+        "stop the sun from setting",
+        "make everyone dance",
+        "win a great big race",
+        "hide all the colours",
+        "keep the moon for itself"
       ]
     }
   ]

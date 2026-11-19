@@ -2,7 +2,7 @@
   "minPlayers": 1,
   "maxPlayers": 6,
   "defaultPlayers": 3,
-  "rollsPerChapter": 3,
+  "rollsPerChapter": 2,
   "abilityUsesPerGame": 2,
   "numberWords": ["one", "two", "three", "four", "five", "six"],
   "childNoun": { "singular": "child", "plural": "children" }
