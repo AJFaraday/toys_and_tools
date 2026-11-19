@@ -21,16 +21,17 @@ export const CharacterDetails = ({ character, config, animate = false, meter }: 
   const mType = moodType(mood);
   return (
     <dl className="details">
-      <div {...reveal(animate, 1, 'details__item details__item--toys')}>
-        <dt className="visually-hidden">Toy</dt>
-        <dd>
-          <ItemIcon name={character.toy} items={config.toys} />
-        </dd>
-      </div>
-      <div {...reveal(animate, 2, 'details__item details__item--tools')}>
+      {/* Tool on the left and toy on the right, matching their sides of the mood meter. */}
+      <div {...reveal(animate, 1, 'details__item details__item--tools')}>
         <dt className="visually-hidden">Tool</dt>
         <dd>
           <ItemIcon name={character.tool} items={config.tools} />
+        </dd>
+      </div>
+      <div {...reveal(animate, 2, 'details__item details__item--toys')}>
+        <dt className="visually-hidden">Toy</dt>
+        <dd>
+          <ItemIcon name={character.toy} items={config.toys} />
         </dd>
       </div>
       <div {...reveal(animate, 3, `details__item details__ability details__item--${ability.rollType}`)}>

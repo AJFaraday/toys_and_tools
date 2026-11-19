@@ -126,7 +126,7 @@ describe('character creation', () => {
 
     const toys = ['Alice', 'Bob', 'Cara'].map((name) => {
       expect(card(name).getByText('Mood')).toBeInTheDocument();
-      return card(name).getAllByRole('definition')[0].textContent; // the first <dd> is the toy
+      return card(name).getAllByRole('definition')[1].textContent; // the second <dd> is the toy
     });
     expect(new Set(toys).size).toBe(3);
     expect(screen.getByRole('button', { name: 'Start adventure' })).toBeInTheDocument();
