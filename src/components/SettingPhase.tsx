@@ -1,8 +1,10 @@
 import { Dispatch, FormEvent, useState } from 'react';
 import { GameConfig, effectiveMaxPlayers } from '../game/config';
-import { Rng } from '../game/dice';
-import { SettingLine, generateSetting, isSettingComplete, needsInput, renderIntro } from '../game/setting';
+import { Rng, pickRandom } from '../game/dice';
+import { SettingLine, generateSetting, isSettingComplete, needsInput } from '../game/setting';
 import { GameAction, GameState } from '../game/state';
+import { Story } from './Story';
+import { STORY_STEP_MS, reveal, useMotion, useMountValue } from './ui/motion';
 
 interface Props {
   state: GameState;
@@ -10,6 +12,9 @@ interface Props {
   rng: Rng;
   config: GameConfig;
 }
+
+// Boys, girls and babies, with yellow or light skin. Only for show, so not from the game's rng.
+const CHILD_ICONS = ['👦', '👧', '👶', '👦🏻', '👧🏻', '👶🏻'];
 
 interface QuestionsProps {
   lines: SettingLine[];
@@ -30,13 +35,14 @@ const StoryQuestions = ({ lines, dispatch }: QuestionsProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="questions">
       {lines.map((line, i) => (
         <p key={line.blockId}>
-          <label>
-            {line.inputLabel}{' '}
+          <label className="question">
+            <span className="question__label">{line.inputLabel}</span>{' '}
             <input
               type="text"
+              className="text-input"
               autoFocus={i === 0}
               value={answers[line.blockId] ?? ''}
               onChange={(e) => setAnswers({ ...answers, [line.blockId]: e.target.value })}
@@ -44,7 +50,7 @@ const StoryQuestions = ({ lines, dispatch }: QuestionsProps) => {
           </label>
         </p>
       ))}
-      <button type="submit" disabled={!allAnswered}>
+      <button type="submit" className="btn btn--primary" disabled={!allAnswered}>
         Done
       </button>
     </form>
@@ -52,34 +58,45 @@ const StoryQuestions = ({ lines, dispatch }: QuestionsProps) => {
 };
 
 export const SettingPhase = ({ state, dispatch, rng, config }: Props) => {
+  const motion = useMotion();
+  // A story already finished when this screen appeared (e.g. after a reload) is shown without fading in.
+  const storyIsNew = useMountValue(!isSettingComplete(state.setting));
   const { minPlayers } = config.rules;
+  // Picked once, so changing the number of players adds or removes children rather than reshuffling them.
+  const [childIcons] = useState(() =>
+    Array.from({ length: effectiveMaxPlayers(config) }, () => pickRandom(CHILD_ICONS, Math.random)),
+  );
   const playerOptions = Array.from(
     { length: effectiveMaxPlayers(config) - minPlayers + 1 },
     (_, i) => minPlayers + i,
   );
 
-  const renderStory = (setting: SettingLine[]) =>
-    isSettingComplete(setting) ? (
+  const renderStory = (setting: SettingLine[]) => {
+    if (!isSettingComplete(setting)) return <StoryQuestions lines={setting.filter(needsInput)} dispatch={dispatch} />;
+    const animate = motion && storyIsNew;
+    return (
       <>
-        <p>{renderIntro(setting, state.playerCount, config.rules)}</p>
-        <button type="button" onClick={() => dispatch({ type: 'START_CHARACTERS' })}>
-          Continue to character creation
-        </button>
+        <Story setting={setting} playerCount={state.playerCount} rules={config.rules} animate={animate} />
+        <p {...reveal(animate, setting.length, 'actions', STORY_STEP_MS)}>
+          <button type="button" className="btn btn--primary btn--big" onClick={() => dispatch({ type: 'START_CHARACTERS' })}>
+            Continue to character creation <span aria-hidden="true">▶</span>
+          </button>
+        </p>
       </>
-    ) : (
-      <StoryQuestions lines={setting.filter(needsInput)} dispatch={dispatch} />
     );
+  };
 
   return (
-    <section>
+    <section className="panel">
       <h2>The setting</h2>
       {state.setting === null ? (
         <>
-          <p>
-            <label>
+          <p className="players">
+            <label className="players__label">
               Number of players{' '}
               <select
                 autoFocus
+                className="players__select"
                 value={state.playerCount}
                 onChange={(e) => dispatch({ type: 'SET_PLAYER_COUNT', count: Number(e.target.value) })}
               >
@@ -90,10 +107,23 @@ export const SettingPhase = ({ state, dispatch, rng, config }: Props) => {
                 ))}
               </select>
             </label>
+            <span className="players__icons" aria-hidden="true">
+              {childIcons.slice(0, state.playerCount).map((icon, i) => (
+                <span key={i} className="players__icon">
+                  {icon}
+                </span>
+              ))}
+            </span>
           </p>
-          <button type="button" onClick={() => dispatch({ type: 'GENERATE_SETTING', setting: generateSetting(rng, config) })}>
-            Generate story
-          </button>
+          <p className="actions">
+            <button
+              type="button"
+              className="btn btn--primary btn--big"
+              onClick={() => dispatch({ type: 'GENERATE_SETTING', setting: generateSetting(rng, config) })}
+            >
+              <span aria-hidden="true">📜</span> Generate story
+            </button>
+          </p>
         </>
       ) : (
         renderStory(state.setting)

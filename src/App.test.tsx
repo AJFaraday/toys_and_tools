@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import { gameConfig } from './game/config';
@@ -54,12 +54,10 @@ describe('setting phase', () => {
     choosePlayers(2);
     click('Generate story');
 
-    expect(
-      screen.getByText(
-        "It was a hot summer's day, and two little children took a walk in the woods, " +
-          'where they met a wise old woman, who wants to steal their toys.',
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('story')).toHaveTextContent(
+      "It was a hot summer's day, and two little children took a walk in the woods, " +
+        'where they met a wise old woman, who wants to steal their toys.',
+    );
     expect(screen.queryByRole('button', { name: 'Generate story' })).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Number of players')).not.toBeInTheDocument();
   });
@@ -100,7 +98,7 @@ describe('setting phase', () => {
     click('Done');
 
     expect(screen.queryByLabelText(label)).not.toBeInTheDocument();
-    expect(screen.getByText(`${meeting.leadIn} ${answered},`, { exact: false })).toBeInTheDocument();
+    expect(screen.getByTestId('story')).toHaveTextContent(`${meeting.leadIn} ${answered},`);
     expect(screen.getByRole('button', { name: 'Continue to character creation' })).toBeEnabled();
   });
 
@@ -128,7 +126,7 @@ describe('character creation', () => {
 
     const toys = ['Alice', 'Bob', 'Cara'].map((name) => {
       expect(card(name).getByText('Mood')).toBeInTheDocument();
-      return card(name).getAllByRole('definition')[0].textContent; // the first <dd> is the toy
+      return card(name).getAllByRole('definition')[1].textContent; // the second <dd> is the toy
     });
     expect(new Set(toys).size).toBe(3);
     expect(screen.getByRole('button', { name: 'Start adventure' })).toBeInTheDocument();
@@ -193,9 +191,9 @@ describe('character creation', () => {
     click('Continue to character creation');
     createCharacters('Alice');
 
-    expect(card('Alice').getByText('Teddy')).toBeInTheDocument();
-    expect(card('Alice').getByText('Book')).toBeInTheDocument();
-    expect(card('Alice').getByText('Jump like a frog (Toy)')).toBeInTheDocument();
+    expect(card('Alice').getByRole('img', { name: 'Teddy' })).toHaveTextContent('🧸');
+    expect(card('Alice').getByRole('img', { name: 'Book' })).toHaveTextContent('📖');
+    expect(card('Alice').getAllByRole('definition')[2]).toHaveTextContent('🐸Jump like a frog Toy');
     expect(card('Alice').getByText('2 (toys mood)')).toBeInTheDocument();
   });
 });
@@ -386,7 +384,7 @@ describe('story dice', () => {
     for (let i = 0; i < twist; i += 1) click('Next chapter');
     expect(screen.getByRole('heading', { name: new RegExp(`Chapter ${twist + 1} of`) })).toBeInTheDocument();
   };
-  const storyDice = () => screen.queryByText(/^Story dice:/);
+  const storyDice = () => screen.queryByTestId('story-dice');
 
   it('rolls as soon as the twist chapter starts, and only there', () => {
     render(<App rng={rng} />);
@@ -453,5 +451,82 @@ describe('remembered player count', () => {
     click('Finish adventure');
     click('New game');
     expect(screen.getByLabelText('Number of players')).toHaveValue('1');
+  });
+});
+
+describe('animation', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+  // Each step schedules the next after rendering, so keep going until nothing is left.
+  const finishAnimations = () => {
+    for (let i = 0; i < 100 && jest.getTimerCount() > 0; i += 1) act(() => jest.runOnlyPendingTimers());
+  };
+
+  it('is off when reduced motion is preferred', () => {
+    render(<App rng={rng} />);
+    startAdventure('Alice');
+    fireEvent.click(card('Alice').getByRole('button', { name: 'Roll Toys' }));
+    expect(card('Alice').getByRole('status')).toHaveTextContent('Toys roll: 1 + 1 = 2');
+  });
+
+  it('fades in a new story and new characters, but not after a reload', () => {
+    const { unmount } = render(<App rng={rng} animate />);
+    choosePlayers(1);
+    click('Generate story');
+    fillStoryInputs();
+    expect(screen.getByText(/It was a/)).toHaveClass('reveal');
+    click('Continue to character creation');
+    createCharacters('Alice');
+    expect(card('Alice').getByRole('heading', { name: 'Alice' })).toHaveClass('reveal');
+    unmount();
+
+    render(<App rng={rng} animate />);
+    expect(card('Alice').getByRole('heading', { name: 'Alice' })).not.toHaveClass('reveal');
+  });
+
+  it('shows the roll result once the dice have settled, or straight away when tapped', () => {
+    render(<App rng={rng} animate />);
+    startAdventure('Alice');
+    const roll = () => fireEvent.click(card('Alice').getByRole('button', { name: 'Roll Toys' }));
+
+    roll();
+    expect(card('Alice').getByRole('status')).toBeEmptyDOMElement();
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+    expect(card('Alice').getByRole('status')).toBeEmptyDOMElement();
+    finishAnimations();
+    expect(card('Alice').getByRole('status')).toHaveTextContent('Toys roll: 1 + 1 = 2 against mood 2 — Pass (exactly on mood)');
+
+    roll();
+    expect(card('Alice').getByRole('status')).toBeEmptyDOMElement();
+    fireEvent.click(screen.getByTitle('Tap to skip'));
+    expect(card('Alice').getByRole('status')).toHaveTextContent('Toys roll: 1 + 1 = 2');
+  });
+
+  it('does not replay a roll restored after a reload', () => {
+    const { unmount } = render(<App rng={rng} animate />);
+    startAdventure('Alice');
+    fireEvent.click(card('Alice').getByRole('button', { name: 'Roll Toys' }));
+    finishAnimations();
+    unmount();
+
+    render(<App rng={rng} animate />);
+    expect(card('Alice').getByRole('status')).toHaveTextContent('Toys roll: 1 + 1 = 2');
+  });
+
+  it('flickers the story dice on its first roll only', () => {
+    render(<App rng={rng} animate />);
+    startAdventure('Alice');
+    const twist = gameConfig.chapters.findIndex((c) => c.actions.includes('StoryDice'));
+    for (let i = 0; i < twist; i += 1) click('Next chapter');
+
+    expect(screen.getByTestId('story-dice')).toBeEmptyDOMElement();
+    finishAnimations();
+    expect(screen.getByTestId('story-dice')).toHaveTextContent(`Story dice: ${gameConfig.storyDice[0]}`);
+
+    click('Previous chapter');
+    click('Next chapter');
+    expect(screen.getByTestId('story-dice')).toHaveTextContent(`Story dice: ${gameConfig.storyDice[0]}`);
   });
 });

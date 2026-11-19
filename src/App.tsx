@@ -6,16 +6,18 @@ import { ResetButton } from './components/ResetButton';
 import { SettingPhase } from './components/SettingPhase';
 import { GameConfig, gameConfig } from './game/config';
 import { Rng } from './game/dice';
-import { renderIntro } from './game/setting';
+import { Story } from './components/Story';
+import { MotionContext, prefersReducedMotion } from './components/ui/motion';
 import { advanceAction, createGameReducer, createInitialState } from './game/state';
 import { clearGame, loadGame, loadPlayerCount, saveGame, savePlayerCount } from './game/storage';
 
 interface Props {
   rng?: Rng;
   config?: GameConfig;
+  animate?: boolean;
 }
 
-function App({ rng = Math.random, config = gameConfig }: Props) {
+function App({ rng = Math.random, config = gameConfig, animate = !prefersReducedMotion() }: Props) {
   const reducer = useMemo(
     () => createGameReducer(config, () => createInitialState(config, loadPlayerCount())),
     [config],
@@ -50,24 +52,36 @@ function App({ rng = Math.random, config = gameConfig }: Props) {
   const showStory = state.setting !== null && (state.phase === 'characters' || state.phase === 'gameplay');
 
   return (
-    <main>
-      <h1>Toys and Tools</h1>
+    <MotionContext.Provider value={animate}>
+      <main className="app">
+        <header className="header">
+          <h1 className="title">
+            <span className="title__toys">
+              <span aria-hidden="true">🧸 </span>Toys
+            </span>{' '}
+            <span className="title__and">and</span>{' '}
+            <span className="title__tools">
+              Tools<span aria-hidden="true"> 🛠️</span>
+            </span>
+          </h1>
+          {state.phase !== 'complete' && <ResetButton onReset={reset} />}
+        </header>
 
-      {state.phase !== 'complete' && <ResetButton onReset={reset} />}
+        {showStory && state.setting && (
+          <section className="panel panel--story">
+            <h2>Our story</h2>
+            <Story setting={state.setting} playerCount={state.playerCount} rules={config.rules} />
+          </section>
+        )}
 
-      {showStory && state.setting && (
-        <section>
-          <h2>Our story</h2>
-          <p>{renderIntro(state.setting, state.playerCount, config.rules)}</p>
-        </section>
-      )}
-
-      {state.phase === 'setting' && <SettingPhase {...phaseProps} />}
-      {state.phase === 'characters' && <CharacterPhase {...phaseProps} />}
-      {state.phase === 'gameplay' && <GameplayPhase {...phaseProps} />}
-      {state.phase === 'complete' && <CompletePhase onNewGame={reset} />}
-    </main>
+        {state.phase === 'setting' && <SettingPhase {...phaseProps} />}
+        {state.phase === 'characters' && <CharacterPhase {...phaseProps} />}
+        {state.phase === 'gameplay' && <GameplayPhase {...phaseProps} />}
+        {state.phase === 'complete' && <CompletePhase onNewGame={reset} />}
+      </main>
+    </MotionContext.Provider>
   );
 }
+
 
 export default App;
