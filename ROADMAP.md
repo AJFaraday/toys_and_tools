@@ -11,6 +11,8 @@
   - [x] Setting reveal
   - [x] Character reveal
 - [x] More toys, tools, abilities, settings and story dice
+- [ ] Key bindings (row for toy, tool, ability, column for character)
+- [x] Icon in application colours
 - [ ] Playtest with Children
 - [x] Mobile UX
 
@@ -18,3 +20,4 @@
 
 - [ ] Game selection (e.g. multiple config directories)
 - [ ] Multiple story dice capability
+- [ ] Dice sound and/or vibration
