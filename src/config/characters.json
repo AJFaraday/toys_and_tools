@@ -5,7 +5,13 @@
     { "name": "Ball", "emoji": "⚽" },
     { "name": "Stick", "emoji": "🪵" },
     { "name": "Toy car", "emoji": "🚗" },
-    { "name": "Skipping rope", "emoji": "🪢" }
+    { "name": "Skipping rope", "emoji": "🪢" },
+    { "name": "Kite", "emoji": "🪁" },
+    { "name": "Yo-yo", "emoji": "🪀" },
+    { "name": "Toy dinosaur", "emoji": "🦖" },
+    { "name": "Balloon", "emoji": "🎈" },
+    { "name": "Drum", "emoji": "🥁" },
+    { "name": "Magic wand", "emoji": "🪄" }
   ],
   "tools": [
     { "name": "Book", "emoji": "📖" },
@@ -13,7 +19,13 @@
     { "name": "First aid kit", "emoji": "🩹" },
     { "name": "Map", "emoji": "🗺️" },
     { "name": "Cupcakes", "emoji": "🧁" },
-    { "name": "Torch", "emoji": "🔦" }
+    { "name": "Torch", "emoji": "🔦" },
+    { "name": "Magnifying glass", "emoji": "🔎" },
+    { "name": "Compass", "emoji": "🧭" },
+    { "name": "Umbrella", "emoji": "☂️" },
+    { "name": "Scissors", "emoji": "✂️" },
+    { "name": "Magnet", "emoji": "🧲" },
+    { "name": "Rope ladder", "emoji": "🪜" }
   ],
   "abilities": [
     { "name": "Jump like a frog", "emoji": "🐸", "rollType": "toys" },
@@ -21,6 +33,12 @@
     { "name": "Run really fast", "emoji": "🏃", "rollType": "toys" },
     { "name": "Make something", "emoji": "🔨", "rollType": "tools" },
     { "name": "Climb something", "emoji": "🧗", "rollType": "tools" },
-    { "name": "Find something", "emoji": "🔍", "rollType": "tools" }
+    { "name": "Find something", "emoji": "🔍", "rollType": "tools" },
+    { "name": "Hide really well", "emoji": "🙈", "rollType": "toys" },
+    { "name": "Make everyone laugh", "emoji": "🤡", "rollType": "toys" },
+    { "name": "Swim like a fish", "emoji": "🐟", "rollType": "toys" },
+    { "name": "Fix something", "emoji": "🔧", "rollType": "tools" },
+    { "name": "Remember something", "emoji": "💭", "rollType": "tools" },
+    { "name": "Talk to animals", "emoji": "🐾", "rollType": "tools" }
   ]
 }

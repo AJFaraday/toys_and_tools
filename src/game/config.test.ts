@@ -47,12 +47,12 @@ describe('parseConfig', () => {
   it('accepts lists of any length', () => {
     const config = parseConfig(
       withChange((raw) => {
-        raw.characters.toys.push('Kite', 'Yo-yo');
+        raw.characters.toys.push('Spinning top', 'Marbles');
         raw.chapters.chapters = ['Beginning', 'End'];
         raw.setting.blocks[0].options = ['sunny day'];
       }),
     );
-    expect(config.toys).toHaveLength(8);
+    expect(config.toys).toHaveLength(charactersJson.toys.length + 2);
     expect(config.chapters).toHaveLength(2);
     expect(config.settingBlocks[0].options).toHaveLength(1);
   });
